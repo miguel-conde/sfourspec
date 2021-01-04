@@ -1,8 +1,16 @@
-library(dplyr)
+# https://math.stackexchange.com/questions/239134/fourier-series-and-exponential
 
-# https://www.coinbase.com/
-
-
+#' spectral_analysis
+#'
+#' @param x
+#'
+#' @return
+#' @export
+#' @import tibble
+#'
+#' @encoding UTF-8
+#'
+#' @examples
 spectral_analysis <- function(x) {
 
   N <- length(x)
@@ -43,6 +51,16 @@ spectral_analysis <- function(x) {
   return(out)
 }
 
+#' calc_w_k
+#'
+#' @param N
+#'
+#' @return
+#'
+#' @encoding UTF-8
+#' @keywords internal
+#'
+#' @examples
 calc_w_k <- function(N) {
 
   out <- rep(NA, N)
@@ -67,6 +85,17 @@ calc_w_k <- function(N) {
   return(out)
 }
 
+#' rebuild_signal
+#'
+#' @param spec_x
+#' @param threshold
+#'
+#' @return
+#' @export
+#'
+#' @encoding UTF-8
+#'
+#' @examples
 rebuild_signal <- function(spec_x, threshold = .8) {
   # Armónicos menos potentes
   aux <- spec_x$tb_dens_spec %>%
@@ -86,6 +115,17 @@ rebuild_signal <- function(spec_x, threshold = .8) {
   return(hat_x_season)
 }
 
+#' rebuild_signal_harmonics
+#'
+#' @param spec_x
+#' @param Ts
+#'
+#' @return
+#' @export
+#'
+#' @encoding UTF-8
+#'
+#' @examples
 rebuild_signal_harmonics <- function(spec_x, Ts) {
   # Armónicos deseados
   ks <- spec_x$tb_dens_spec %>%
