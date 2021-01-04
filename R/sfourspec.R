@@ -4,13 +4,40 @@
 #'
 #' @param x
 #'
-#' @return
+#' @return List with:
+#'     \itemize{
+#'         \item P_avg \code{Tibble}, Term - estimate table for the model
+#'                      coefficients.
+#'         \item P_dc \code{matrix} containing the samples of the
+#'                           coefficients.
+#'         \item P_ac \code{matrix} with quantiles from the samples of the
+#'                        model coeficcients
+#'         \item x_ef \code{Tibble}, Term - estimate table for the model
+#'                      coefficients.
+#'         \item tb_spec \code{matrix} containing the samples of the
+#'                           coefficients.
+#'         \item tb_dens_spec \code{matrix} with quantiles from the samples of the
+#'                        model coeficcients
+#'     }
+#'
 #' @export
 #' @import tibble
 #'
 #' @encoding UTF-8
 #'
 #' @examples
+#' N_0 <- 10       # PERIODO - u. de t. (p. ej., segundos)
+#' w_0 <- 2*pi/N_0 # FRECUENCIA ANGULAR
+#'
+#' # (muestreo cada milisegundo)
+#' sampling_freq <- 1e-3
+#'
+#' ns <- seq(0, N_0/sampling_freq-1, by = 1)
+#' N <- length(ns)
+#' x <- sin(w_0*ns*sampling_freq)
+#'
+#' spec_x <- spectral_analysis(x)
+#'
 spectral_analysis <- function(x) {
 
   N <- length(x)
