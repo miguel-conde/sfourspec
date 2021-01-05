@@ -8,7 +8,9 @@
 rebuild_signal(spec_x, threshold = 0.8)
 }
 \arguments{
-\item{threshold}{}
+\item{spec_x}{TODO}
+
+\item{threshold}{TODO}
 }
 \value{
 

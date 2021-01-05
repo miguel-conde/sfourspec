@@ -8,7 +8,9 @@
 rebuild_signal_harmonics(spec_x, Ts)
 }
 \arguments{
-\item{Ts}{}
+\item{spec_x}{TODO}
+
+\item{Ts}{TODO}
 }
 \value{
 

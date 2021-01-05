@@ -3,29 +3,34 @@
 
 #' spectral_analysis
 #'
-#' @param x
+#' Simple Fourier spectra
+#'
+#' @param x TODO
 #'
 #' @return List with:
 #'     \itemize{
-#'         \item P_avg \code{Tibble}, Term - estimate table for the model
-#'                      coefficients.
-#'         \item P_dc \code{matrix} containing the samples of the
-#'                           coefficients.
-#'         \item P_ac \code{matrix} with quantiles from the samples of the
-#'                        model coeficcients
-#'         \item x_ef \code{Tibble}, Term - estimate table for the model
-#'                      coefficients.
-#'         \item four_exp \code{matrix} containing the samples of the
-#'                           coefficients.
-#'         \item four_cos_sin \code{matrix} with quantiles from the samples of the
-#'                        model coeficcients
-#'
-#'         \item four_cos \code{matrix} with quantiles from the samples of the
-#'                        model coeficcients
+#'         \item P_avg \code{double}, Mean Square Value of x, aka x's mean power.
+#'         \item P_dc \code{double} Square mean value of x, aka the mean power of the
+#'         x's continuous component (dc).
+#'         \item P_ac \code{double} Variance of x, aka the mean power of the x's
+#'         alternate component (ac).
+#'         \item x_ef \code{double}, The effective value of x.
+#'         \item four_exp \code{tibble} containing the results obtained using a
+#'         Fourier series with exponential form (linear combination of complex
+#'         exponentials).
+#'         \item four_cos_sin \code{tibble} containing the results obtained using a
+#'         Fourier series with sine / cosine form (linear combination of sines and cosines)..
+#'         \item four_cos \code{tibble} containing the results obtained using a
+#'         Fourier series with cosine form (linear combination of cosines).
 #'     }
 #'
+#' @details
+#'
+#' \deqn{ \langle x[n] \rangle_{N} = \frac{1}{N} \sum_{\langle N \rangle}x[n] }
+#'
 #' @export
-#' @import tibble
+#'
+#' @importFrom stats acf fft
 #'
 #' @encoding UTF-8
 #'
@@ -38,7 +43,7 @@
 #'
 #' ns <- seq(0, N_0/sampling_freq-1, by = 1)
 #' N <- length(ns)
-#' x <- sin(w_0*ns*sampling_freq)
+#' x <- sin(w_0 * ns * sampling_freq)
 #'
 #' spec_x <- spectral_analysis(x)
 #'
@@ -54,16 +59,16 @@ spectral_analysis <- function(x) {
   P_ac <- P_avg - P_dc # Potencia media de la componente alterna = varianza de x
   x_ef <- sqrt(P_ac)   # Valor eficaz
 
-  four_exp = tibble(n = 0:(N-1),
-                   k = calc_w_k(N),
-                   w_k = k*w_0,
-                   f_k = w_k/2/pi,
-                   T_k = 1/f_k,
-                   x_k = x_k,
-                   a_k = x_k/N,
-                   # Th. Parseval: sum(F_L_spectrum) = P_avg = valor cuadrático medio
-                   F_L_spectrum_k = Mod(a_k)^2,
-                   periodogram_k = calc_periodogram(x, P_avg))
+  four_exp = tibble::tibble(n = 0:(N-1),
+                            k = calc_w_k(N),
+                            w_k = k*w_0,
+                            f_k = w_k/2/pi,
+                            T_k = 1/f_k,
+                            x_k = x_k,
+                            a_k = x_k/N,
+                            # Th. Parseval: sum(F_L_spectrum) = P_avg = valor cuadrático medio
+                            F_L_spectrum_k = Mod(a_k)^2,
+                            periodogram_k = calc_periodogram(x, P_avg))
 
   four_cos_sin <- four_exp %>%
     select(k, w_k, f_k, T_k, a_k, F_L_spectrum_k, periodogram_k) %>%
@@ -92,8 +97,8 @@ spectral_analysis <- function(x) {
 
 #' calc_periodogram
 #'
-#' @param x
-#' @param P_avg
+#' @param x TODO
+#' @param P_avg TODO
 #'
 #' @return
 #'
@@ -119,7 +124,7 @@ calc_periodogram <- function(x, P_avg) {
 
 #' calc_w_k
 #'
-#' @param N
+#' @param N TODO
 #'
 #' @return
 #'
@@ -153,8 +158,8 @@ calc_w_k <- function(N) {
 
 #' rebuild_signal
 #'
-#' @param spec_x
-#' @param threshold
+#' @param spec_x TODO
+#' @param threshold TODO
 #'
 #' @return
 #' @export
@@ -183,8 +188,8 @@ rebuild_signal <- function(spec_x, threshold = .8) {
 
 #' rebuild_signal_harmonics
 #'
-#' @param spec_x
-#' @param Ts
+#' @param spec_x TODO
+#' @param Ts TODO
 #'
 #' @return
 #' @export
@@ -212,15 +217,17 @@ rebuild_signal_harmonics <- function(spec_x, Ts) {
 
 #' plot_spetrum
 #'
-#' @param spec_x
-#' @param fft_type
-#' @param x_axis
-#' @param y_axis
-#' @param ...
+#' @param spec_x TODO
+#' @param fft_type TODO
+#' @param x_axis TODO
+#' @param y_axis TODO
+#' @param ... TODO
 #'
 #' @return
 #'
 #' @export
+#'
+#' @importFrom graphics plot
 #'
 #' @encoding UTF-8
 #'

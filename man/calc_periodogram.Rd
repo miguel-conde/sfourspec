@@ -8,7 +8,9 @@
 calc_periodogram(x, P_avg)
 }
 \arguments{
-\item{P_avg}{}
+\item{x}{TODO}
+
+\item{P_avg}{TODO}
 }
 \value{
 

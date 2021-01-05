@@ -14,7 +14,15 @@ plot_spetrum(
 )
 }
 \arguments{
-\item{...}{}
+\item{spec_x}{TODO}
+
+\item{fft_type}{TODO}
+
+\item{x_axis}{TODO}
+
+\item{y_axis}{TODO}
+
+\item{...}{TODO}
 }
 \value{
 

@@ -8,7 +8,7 @@
 calc_w_k(N)
 }
 \arguments{
-\item{N}{}
+\item{N}{TODO}
 }
 \value{
 

@@ -16,3 +16,7 @@ Cowpertwait, Paul S. P., and Andrew V. Metcalfe. 2009.
     233 Spring Street, New York, NY 10013, USA: Springer Science+Business Media, LLC.
     \href{http://www.springer.com/series/6991}{Springer Series}.
 }
+\author{
+\strong{Maintainer}: Miguel Conde \email{miguelco2000@gmail.com}
+
+}

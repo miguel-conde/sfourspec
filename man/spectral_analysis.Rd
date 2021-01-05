@@ -8,30 +8,31 @@
 spectral_analysis(x)
 }
 \arguments{
-\item{x}{}
+\item{x}{TODO}
 }
 \value{
 List with:
     \itemize{
-        \item P_avg \code{Tibble}, Term - estimate table for the model
-                     coefficients.
-        \item P_dc \code{matrix} containing the samples of the
-                          coefficients.
-        \item P_ac \code{matrix} with quantiles from the samples of the
-                       model coeficcients
-        \item x_ef \code{Tibble}, Term - estimate table for the model
-                     coefficients.
-        \item four_exp \code{matrix} containing the samples of the
-                          coefficients.
-        \item four_cos_sin \code{matrix} with quantiles from the samples of the
-                       model coeficcients
-
-        \item four_cos \code{matrix} with quantiles from the samples of the
-                       model coeficcients
+        \item P_avg \code{double}, Mean Square Value of x, aka x's mean power.
+        \item P_dc \code{double} Square mean value of x, aka the mean power of the
+        x's continuous component (dc).
+        \item P_ac \code{double} Variance of x, aka the mean power of the x's
+        alternate component (ac).
+        \item x_ef \code{double}, The effective value of x.
+        \item four_exp \code{tibble} containing the results obtained using a
+        Fourier series with exponential form (linear combination of complex
+        exponentials).
+        \item four_cos_sin \code{tibble} containing the results obtained using a
+        Fourier series with sine / cosine form (linear combination of sines and cosines)..
+        \item four_cos \code{tibble} containing the results obtained using a
+        Fourier series with cosine form (linear combination of cosines).
     }
 }
 \description{
-spectral_analysis
+Simple Fourier spectra
+}
+\details{
+\deqn{ \langle x[n] \rangle_{N} = \frac{1}{N} \sum_{\langle N \rangle}x[n] }
 }
 \examples{
 N_0 <- 10       # PERIODO - u. de t. (p. ej., segundos)
@@ -42,7 +43,7 @@ sampling_freq <- 1e-3
 
 ns <- seq(0, N_0/sampling_freq-1, by = 1)
 N <- length(ns)
-x <- sin(w_0*ns*sampling_freq)
+x <- sin(w_0 * ns * sampling_freq)
 
 spec_x <- spectral_analysis(x)
 
