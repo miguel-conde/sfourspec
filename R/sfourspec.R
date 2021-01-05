@@ -1,4 +1,5 @@
 # https://math.stackexchange.com/questions/239134/fourier-series-and-exponential
+# https://lpsa.swarthmore.edu/Fourier/Series/DerFS.html#Equiv
 
 #' spectral_analysis
 #'
@@ -14,9 +15,12 @@
 #'                        model coeficcients
 #'         \item x_ef \code{Tibble}, Term - estimate table for the model
 #'                      coefficients.
-#'         \item tb_spec \code{matrix} containing the samples of the
+#'         \item four_exp \code{matrix} containing the samples of the
 #'                           coefficients.
-#'         \item tb_dens_spec \code{matrix} with quantiles from the samples of the
+#'         \item four_cos_sin \code{matrix} with quantiles from the samples of the
+#'                        model coeficcients
+#'
+#'         \item four_cos \code{matrix} with quantiles from the samples of the
 #'                        model coeficcients
 #'     }
 #'
@@ -50,7 +54,7 @@ spectral_analysis <- function(x) {
   P_ac <- P_avg - P_dc # Potencia media de la componente alterna = varianza de x
   x_ef <- sqrt(P_ac)   # Valor eficaz
 
-  tb_spec = tibble(n = 0:(N-1),
+  four_exp = tibble(n = 0:(N-1),
                    k = calc_w_k(N),
                    w_k = k*w_0,
                    f_k = w_k/2/pi,
@@ -58,24 +62,59 @@ spectral_analysis <- function(x) {
                    x_k = x_k,
                    a_k = x_k/N,
                    # Th. Parseval: sum(F_L_spectrum) = P_avg = valor cuadrático medio
-                   F_L_spectrum = Mod(a_k)^2)
+                   F_L_spectrum_k = Mod(a_k)^2,
+                   periodogram_k = calc_periodogram(x, P_avg))
 
-  tb_dens_spec <- tb_spec %>%
-    select(k, w_k, f_k, T_k, a_k, F_L_spectrum) %>%
+  four_cos_sin <- four_exp %>%
+    select(k, w_k, f_k, T_k, a_k, F_L_spectrum_k, periodogram_k) %>%
     group_by(k, w_k, f_k, T_k) %>%
-    summarise(periodogram_k = sum(F_L_spectrum),
-              B_k = sum(a_k),
-              C_k = ifelse(length(a_k) == 2, (0+1i)*(a_k[1]-a_k[2]), a_k)) %>%
-    ungroup() %>%
-    mutate(A_k = sqrt(Mod(B_k)^2 + Mod(C_k)^2))
+    summarise(B_k = sum(a_k),
+              C_k = ifelse(length(a_k) == 2, (0+1i)*(a_k[1]-a_k[2]), a_k),
+              F_L_spectrum_k = sum(F_L_spectrum_k),
+              periodogram_k = sum(periodogram_k)) %>%
+    ungroup()
+
+  four_cos <- four_cos_sin %>%
+    mutate(A_k = sqrt(Mod(B_k)^2 + Mod(C_k)^2),
+           theta = atan(-C_k / A_k),
+           F_L_spectrum_k = 1/2*Mod(A_k)^2) %>%
+    select(-B_k, -C_k)
 
   out <- list(P_avg = P_avg,
               P_dc = P_dc,
               P_ac = P_ac,
               x_ef = x_ef,
-              tb_spec = tb_spec,
-              tb_dens_spec = tb_dens_spec)
+              four_exp = four_exp,
+              four_cos_sin = four_cos_sin,
+              four_cos = four_cos)
   return(out)
+}
+
+#' calc_periodogram
+#'
+#' @param x
+#' @param P_avg
+#'
+#' @return
+#'
+#' @encoding UTF-8
+#' @keywords internal
+#'
+#' @examples
+calc_periodogram <- function(x, P_avg) {
+
+  N <- length(x)
+
+  acf_x <- acf(x, type = "covariance", lag.max = N, plot = FALSE)$acf %>%
+    as.numeric()
+
+  fft_acf <- Mod(fft(acf_x))
+
+  area_fft_acf <- mean(fft_acf)*0.5
+
+  fft_acf <- fft_acf/area_fft_acf*P_avg
+
+  fft_acf
 }
 
 #' calc_w_k
@@ -125,13 +164,13 @@ calc_w_k <- function(N) {
 #' @examples
 rebuild_signal <- function(spec_x, threshold = .8) {
   # Armónicos menos potentes
-  aux <- spec_x$tb_dens_spec %>%
-    arrange(-periodogram_k)
+  aux <- spec_x$four_cos_sin %>%
+    arrange(-F_L_spectrum_k)
   ks <- aux %>%
-    .$k %>% .[which(cumsum(aux$periodogram_k) > threshold*spec_x$P_ac)]
+    .$k %>% .[which(cumsum(aux$F_L_spectrum_k) > threshold*spec_x$P_ac)]
 
   # Reconstruimos la señal solo con los armónicos más potentes
-  aux2 <-  spec_x$tb_spec %>%
+  aux2 <-  spec_x$four_exp %>%
     pull(a_k)
   aux2[ks] <- 0
 
@@ -155,18 +194,83 @@ rebuild_signal <- function(spec_x, threshold = .8) {
 #' @examples
 rebuild_signal_harmonics <- function(spec_x, Ts) {
   # Armónicos deseados
-  ks <- spec_x$tb_dens_spec %>%
+  ks <- spec_x$four_cos_sin %>%
     filter(T_k %in% Ts) %>%
     pull(k)
 
   # Reconstruimos la señal solo con los armónicos deseados
-  aux <-  spec_x$tb_spec %>%
+  aux <-  spec_x$four_exp %>%
     pull(a_k)
-  aux[!(spec_x$tb_spec$k %in% ks)] <- 0
+  aux[!(spec_x$four_exp$k %in% ks)] <- 0
 
   hat_x_season <- aux %>%
     fft(inverse = TRUE) %>%
     Re()
 
   return(hat_x_season)
+}
+
+#' plot_spetrum
+#'
+#' @param spec_x
+#' @param fft_type
+#' @param x_axis
+#' @param y_axis
+#' @param ...
+#'
+#' @return
+#'
+#' @export
+#'
+#' @encoding UTF-8
+#'
+#' @examples
+plot_spetrum <- function(spec_x,
+                         fft_type = "exp",
+                         x_axis = "f",
+                         y_axis = "fourier_line_spectrum",
+                         ...) {
+
+  fft_type <- switch(match.arg(fft_type, c("exp", "cos_sin", "cos")),
+                     "exp" = "four_exp",
+                     "cos_sin" = "four_cos_sin",
+                     "cos" = "four_cos")
+  x_axis = switch(match.arg(x_axis, c("f", "w", "T", "k", "n")),
+                  "f" = "f_k",
+                  "w" = "w_k",
+                  "T" = "T_k",
+                  "k" = "k",
+                  "n" = "n")
+  y_axis = switch(match.arg(y_axis, c("fourier_line_spectrum",
+                                 "periodogram")),
+                  "fourier_line_spectrum" = "F_L_spectrum_k",
+                  "periodogram" = "periodogram_k")
+
+  if (x_axis == "n" & fft_type != "four_exp") {
+    stop(paste("Can't use 'n' with fft_type =", fft_type))
+  }
+
+  title = switch(y_axis,
+                 "F_L_spectrum_k" = "Fourier Line Spectrum",
+                 "periodogram_k" = "Periodogram (density spectrum)")
+  type_plot = switch(y_axis,
+                 "F_L_spectrum_k" = "h",
+                 "periodogram_k" = "l")
+  x_lab = switch(x_axis,
+                  "f_k" = expression(paste(f[k], " (u.de ", t^-1, ")")),
+                  "w_k" = expression(paste(omega[k], " (cycles /u.de t.")),
+                  "T_k" = expression(paste(T[k], " (u.de t.)")),
+                  "k" = "k",
+                  "n" = "n")
+  y_lab = switch(y_axis,
+                 "F_L_spectrum_k" = expression(paste("Var(x) = ", P[ac])),
+                 "periodogram_k" = expression(paste(P[ac], " / u.de ", t^-1)))
+
+# browser()
+  plot(spec_x[[fft_type]] %>% select(all_of(c(x_axis, y_axis))),
+       type = type_plot,
+       xlab = x_lab,
+       ylab = y_lab,
+       main = title,
+       ...)
 }

@@ -21,9 +21,12 @@ List with:
                        model coeficcients
         \item x_ef \code{Tibble}, Term - estimate table for the model
                      coefficients.
-        \item tb_spec \code{matrix} containing the samples of the
+        \item four_exp \code{matrix} containing the samples of the
                           coefficients.
-        \item tb_dens_spec \code{matrix} with quantiles from the samples of the
+        \item four_cos_sin \code{matrix} with quantiles from the samples of the
+                       model coeficcients
+
+        \item four_cos \code{matrix} with quantiles from the samples of the
                        model coeficcients
     }
 }
