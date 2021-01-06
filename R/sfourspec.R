@@ -5,28 +5,31 @@
 #'
 #' Simple Fourier spectra
 #'
-#' @param x TODO
+#' @param x a numeric vector or univariate time series.
 #'
 #' @return List with:
 #'     \itemize{
 #'         \item P_avg \code{double}, Mean Square Value of x, aka x's mean power.
-#'         \item P_dc \code{double} Square mean value of x, aka the mean power of the
+#'         \item P_dc \code{double}, Square mean value of x, aka the mean power of the
 #'         x's continuous component (dc).
-#'         \item P_ac \code{double} Variance of x, aka the mean power of the x's
+#'         \item P_ac \code{double}, Variance of x, aka the mean power of the x's
 #'         alternate component (ac).
-#'         \item x_ef \code{double}, The effective value of x.
-#'         \item four_exp \code{tibble} containing the results obtained using a
+#'         \item x_ef \code{double},, The effective value of x.
+#'         \item four_exp \code{tibble}, containing the results obtained using a
 #'         Fourier series with exponential form (linear combination of complex
 #'         exponentials).
-#'         \item four_cos_sin \code{tibble} containing the results obtained using a
+#'         \item four_cos_sin \code{tibble}, containing the results obtained using a
 #'         Fourier series with sine / cosine form (linear combination of sines and cosines)..
-#'         \item four_cos \code{tibble} containing the results obtained using a
+#'         \item four_cos \code{tibble}, containing the results obtained using a
 #'         Fourier series with cosine form (linear combination of cosines).
+#'         \item x, the original signal.
 #'     }
 #'
 #' @details
 #'
-#' \deqn{ \langle x[n] \rangle_{N} = \frac{1}{N} \sum_{\langle N \rangle}x[n] }
+#' \deqn{
+#' \langle x[n] \rangle_{N} = \frac{1}{N} \sum_{\langle N \rangle}x[n]
+#' }
 #'
 #' @export
 #'
@@ -46,6 +49,8 @@
 #' x <- sin(w_0 * ns * sampling_freq)
 #'
 #' spec_x <- spectral_analysis(x)
+#'
+#' plot(spec_x)
 #'
 spectral_analysis <- function(x) {
 
@@ -91,21 +96,29 @@ spectral_analysis <- function(x) {
               x_ef = x_ef,
               four_exp = four_exp,
               four_cos_sin = four_cos_sin,
-              four_cos = four_cos)
+              four_cos = four_cos,
+              x = x)
+
+  class(out) <- c("sfourspec", class(out))
+
   return(out)
 }
 
 #' calc_periodogram
 #'
-#' @param x TODO
-#' @param P_avg TODO
+#' This function estimates the spectral density as the Fourier Transform of the
+#' auto covariance function.
 #'
-#' @return
+#' @param x a numeric vector or univariate time series.
+#' @param P_avg  \code{double}, Mean Square Value of x, aka x's mean power.
+#'
+#' @return the spectral density estimation.
 #'
 #' @encoding UTF-8
 #' @keywords internal
 #'
 #' @examples
+#'
 calc_periodogram <- function(x, P_avg) {
 
   N <- length(x)
@@ -158,10 +171,11 @@ calc_w_k <- function(N) {
 
 #' rebuild_signal
 #'
-#' @param spec_x TODO
-#' @param threshold TODO
+#' @param spec_x an object of class \code{sfourspec}.
+#' @param threshold the % of power in the original signal to keep in the rebuilt
+#' signal
 #'
-#' @return
+#' @return a numeric vector with the rebuilt signal.
 #' @export
 #'
 #' @encoding UTF-8
@@ -172,18 +186,48 @@ rebuild_signal <- function(spec_x, threshold = .8) {
   aux <- spec_x$four_cos_sin %>%
     arrange(-F_L_spectrum_k)
   ks <- aux %>%
-    .$k %>% .[which(cumsum(aux$F_L_spectrum_k) > threshold*spec_x$P_ac)]
+    .$k %>% .[which(cumsum(aux$F_L_spectrum_k) > threshold*spec_x$P_avg)]
 
   # Reconstruimos la señal solo con los armónicos más potentes
   aux2 <-  spec_x$four_exp %>%
     pull(a_k)
   aux2[ks] <- 0
 
-  hat_x_season <- aux2 %>%
+  hat_x <- aux2 %>%
     fft(inverse = TRUE) %>%
     Re()
 
-  return(hat_x_season)
+  if (inherits(spec_x$x, "ts")) {
+    hat_x <- make_ts(hat_x, spec_x)
+  }
+
+  return(hat_x)
+}
+
+#' make_ts
+#'
+#' @param hat_x
+#' @param spec_x
+#'
+#' @return
+#'
+#' @importFrom stats ts start end frequency deltat
+#'
+#' @encoding UTF-8
+#' @keywords internal
+#'
+#' @examples
+make_ts <- function(hat_x, spec_x) {
+
+  out <- ts(hat_x,
+              start = start(spec_x$x),
+              end = end(spec_x$x),
+              frequency = frequency(spec_x$x),
+              deltat = deltat(spec_x$x),
+              class = class(spec_x$x),
+              names = names(spec_x$x))
+
+  return(out)
 }
 
 #' rebuild_signal_harmonics
@@ -208,16 +252,20 @@ rebuild_signal_harmonics <- function(spec_x, Ts) {
     pull(a_k)
   aux[!(spec_x$four_exp$k %in% ks)] <- 0
 
-  hat_x_season <- aux %>%
+  hat_x <- aux %>%
     fft(inverse = TRUE) %>%
     Re()
 
-  return(hat_x_season)
+  if (inherits(spec_x$x, "ts")) {
+    hat_x <- make_ts(hat_x, spec_x)
+  }
+
+  return(hat_x)
 }
 
-#' plot_spetrum
+#' plot_spectrum
 #'
-#' @param spec_x TODO
+#' @param x TODO
 #' @param fft_type TODO
 #' @param x_axis TODO
 #' @param y_axis TODO
@@ -232,11 +280,13 @@ rebuild_signal_harmonics <- function(spec_x, Ts) {
 #' @encoding UTF-8
 #'
 #' @examples
-plot_spetrum <- function(spec_x,
-                         fft_type = "exp",
-                         x_axis = "f",
-                         y_axis = "fourier_line_spectrum",
-                         ...) {
+plot.sfourspec <- function(x,
+                           fft_type = "exp",
+                           x_axis = "f",
+                           y_axis = "fourier_line_spectrum",
+                           ...) {
+
+  spec_x <- x
 
   fft_type <- switch(match.arg(fft_type, c("exp", "cos_sin", "cos")),
                      "exp" = "four_exp",

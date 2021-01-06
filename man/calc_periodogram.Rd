@@ -8,14 +8,18 @@
 calc_periodogram(x, P_avg)
 }
 \arguments{
-\item{x}{TODO}
+\item{x}{a numeric vector or univariate time series.}
 
-\item{P_avg}{TODO}
+\item{P_avg}{\code{double}, Mean Square Value of x, aka x's mean power.}
 }
 \value{
-
+the spectral density estimation.
 }
 \description{
-calc_periodogram
+This function estimates the spectral density as the Fourier Transform of the
+auto covariance function.
+}
+\examples{
+
 }
 \keyword{internal}

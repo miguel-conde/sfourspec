@@ -8,12 +8,13 @@
 rebuild_signal(spec_x, threshold = 0.8)
 }
 \arguments{
-\item{spec_x}{TODO}
+\item{spec_x}{an object of class \code{sfourspec}.}
 
-\item{threshold}{TODO}
+\item{threshold}{the % of power in the original signal to keep in the rebuilt
+signal}
 }
 \value{
-
+a numeric vector with the rebuilt signal.
 }
 \description{
 rebuild_signal
