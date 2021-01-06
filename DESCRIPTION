@@ -1,7 +1,7 @@
 Package: sfourspec
 Type: Package
 Title: Simple Fourier Spectra
-Version: 0.1.0
+Version: 0.2.0
 Authors@R: 
     c(person(given = "Miguel", 
              family = "Conde", 
@@ -18,5 +18,4 @@ Imports:
     tibble
 Suggests:
     devtools,
-    testthat,
-    tinytex
+    testthat
