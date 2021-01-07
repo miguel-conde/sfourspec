@@ -38,17 +38,16 @@
 #' @encoding UTF-8
 #'
 #' @examples
-#' N_0 <- 10       # PERIODO - u. de t. (p. ej., segundos)
-#' w_0 <- 2*pi/N_0 # FRECUENCIA ANGULAR
+#' air_pass <- tibble(t = 1:length(AirPassengers), pass = as.numeric(AirPassengers))
 #'
-#' # (muestreo cada milisegundo)
-#' sampling_freq <- 1e-3
+#' lm_air_pass <- lm(pass ~ t, air_pass)
+#' summary(lm_air_pass)
 #'
-#' ns <- seq(0, N_0/sampling_freq-1, by = 1)
-#' N <- length(ns)
-#' x <- sin(w_0 * ns * sampling_freq)
+#' detrended_air_pass <- AirPassengers - fitted(lm_air_pass)
+#' N <- length(detrended_air_pass)
+#' ns <- 0:(N-1)
 #'
-#' spec_x <- spectral_analysis(x)
+#' spec_x <- spectral_analysis(detrended_air_pass)
 #'
 #' plot(spec_x)
 #'
@@ -79,7 +78,7 @@ spectral_analysis <- function(x) {
     select(k, w_k, f_k, T_k, a_k, F_L_spectrum_k, periodogram_k) %>%
     group_by(k, w_k, f_k, T_k) %>%
     summarise(B_k = sum(a_k),
-              C_k = ifelse(length(a_k) == 2, (0+1i)*(a_k[1]-a_k[2]), a_k),
+              C_k = (0+1i)*ifelse(length(a_k) == 2, (a_k[1]-a_k[2]), a_k),
               F_L_spectrum_k = sum(F_L_spectrum_k),
               periodogram_k = sum(periodogram_k)) %>%
     ungroup()
@@ -128,7 +127,7 @@ calc_periodogram <- function(x, P_avg) {
 
   fft_acf <- Mod(fft(acf_x))
 
-  area_fft_acf <- mean(fft_acf)*0.5
+  area_fft_acf <- mean(fft_acf)
 
   fft_acf <- fft_acf/area_fft_acf*P_avg
 

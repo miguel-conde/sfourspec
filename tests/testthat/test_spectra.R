@@ -58,11 +58,14 @@ test_that("The sum of each Fourier Line Spectra adds up to the Mean Square Value
                          .Machine$double.neg.eps)
           })
 
-test_that("The sum of each Periodogram adds up to the number of samples",
+test_that("The area under the Periodogram adds up to the Power",
           {
-            expect_equal(abs(sum(spec_x$four_exp$periodogram_k)), N)
-            expect_equal(abs(sum(spec_x$four_cos_sin$periodogram_k)), N)
-            expect_equal(abs(sum(spec_x$four_cos$periodogram_k)), N)
+            expect_equal(abs(mean(spec_x$four_exp$periodogram_k)- spec_x$P_avg),
+                             .Machine$double.neg.eps)
+            expect_equal(abs(1/2*mean(spec_x$four_cos_sin$periodogram_k)*(N/2+1)/(N/2) -
+                               spec_x$P_avg), .Machine$double.neg.eps)
+            expect_equal(abs(1/2*mean(spec_x$four_cos$periodogram_k)*(N/2+1)/(N/2) -
+                               spec_x$P_avg), .Machine$double.neg.eps)
           })
 
 

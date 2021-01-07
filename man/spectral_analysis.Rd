@@ -38,17 +38,16 @@ Simple Fourier spectra
 }
 }
 \examples{
-N_0 <- 10       # PERIODO - u. de t. (p. ej., segundos)
-w_0 <- 2*pi/N_0 # FRECUENCIA ANGULAR
+air_pass <- tibble(t = 1:length(AirPassengers), pass = as.numeric(AirPassengers))
 
-# (muestreo cada milisegundo)
-sampling_freq <- 1e-3
+lm_air_pass <- lm(pass ~ t, air_pass)
+summary(lm_air_pass)
 
-ns <- seq(0, N_0/sampling_freq-1, by = 1)
-N <- length(ns)
-x <- sin(w_0 * ns * sampling_freq)
+detrended_air_pass <- AirPassengers - fitted(lm_air_pass)
+N <- length(detrended_air_pass)
+ns <- 0:(N-1)
 
-spec_x <- spectral_analysis(x)
+spec_x <- spectral_analysis(detrended_air_pass)
 
 plot(spec_x)
 
