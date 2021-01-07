@@ -1,0 +1,89 @@
+---
+title: "R Notebook"
+output: 
+  html_document:
+    keep_md: true
+    code_folding: hide
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+# sfourspec R Package
+
+*Simple Fourier Spectra*.
+
+Utilities to make simple spectrum analysis. Simple tools for simple spectral analysis based on Fourier signal decomposition.
+
+
+## Install
+
+```
+remotes::install_github("https://github.com/miguel-conde/sfourspec.git",ref = "develop")
+```
+
+## Example
+
+```{r}
+library(sfourspec)
+
+air_pass <- tibble(t = 1:length(AirPassengers), pass = as.numeric(AirPassengers))
+
+plot(AirPassengers)
+```
+
+```{r}
+lm_air_pass <- lm(pass ~ t, air_pass)
+
+detrended_air_pass <- AirPassengers - fitted(lm_air_pass)
+
+plot(detrended_air_pass)
+```
+
+```{r}
+N <- length(detrended_air_pass)
+ns <- 0:(N-1)
+
+spec_x <- spectral_analysis(detrended_air_pass)
+```
+
+```{r}
+spec_x$four_exp
+```
+
+```{r}
+plot(spec_x)
+```
+
+```{r}
+plot(spec_x, x_axis = "n")
+```
+
+```{r}
+plot(spec_x, y_axis = "periodogram")
+```
+
+```{r}
+plot(spec_x, x_axis = "T", y_axis = "periodogram", log = "xy")
+```
+
+```{r}
+rebuilt_x <- rebuild_signal(spec_x, threshold = 1)
+
+plot(detrended_air_pass)
+lines(rebuilt_x, col = "red")
+```
+
+
+```{r}
+rebuilt_x <- rebuild_signal(spec_x, threshold = 0.65)
+
+plot(detrended_air_pass)
+lines(rebuilt_x, col = "red")
+```
+
+
+
+
