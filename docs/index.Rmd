@@ -1,9 +1,7 @@
 ---
-title: "R Notebook"
+title: "sfourspec"
 output: 
-  html_document:
-    keep_md: true
-    code_folding: hide
+  md_document:
     df_print: paged
 ---
 
