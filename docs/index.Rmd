@@ -1,8 +1,6 @@
 ---
 title: "sfourspec"
-output: 
-  md_document:
-    df_print: paged
+output: md_document
 ---
 
 ```{r setup, include=FALSE}
