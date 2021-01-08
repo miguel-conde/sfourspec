@@ -1,13 +1,3 @@
----
-title: "R Notebook"
-output: 
-  html_document:
-    keep_md: true
-    code_folding: show
-    df_print: paged
----
-
-
 
 # sfourspec R Package
 
